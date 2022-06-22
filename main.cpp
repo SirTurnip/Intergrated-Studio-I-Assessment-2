@@ -378,7 +378,7 @@ int main() {
     int fileType = input;
 
     int x = ReadFile(fileType);
-
+  
     if(x == students) {
         student.StudentRead();
     } else if(x == teachers) {
@@ -386,4 +386,6 @@ int main() {
     } else if(x == notifications) {
         user.Login();
     }   
+
+	return 0;
 }
