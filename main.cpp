@@ -3,12 +3,6 @@
 using namespace std;
 // School Managment App
 
-void parent();
-
-void teacher();
-
-void admin();
-
 int login();
 
 int main() {
@@ -30,21 +24,6 @@ int login()
 
 	cin >> login_option;
 
-	// switch for each option
-	switch (login_option) {
-	case 1:
-		admin();
-		break;
-	case 2:
-		teacher();
-		break;
-	case 3:
-		parent();
-		break;
-	default:
-		cout << "Invalid option" << endl;
-		break;
-	}
 	
 	int login_or_register;
 
@@ -66,17 +45,4 @@ int login()
 
 	
 	return login_or_register;
-}
-
-void parent()
-{
-	
-}
-
-void teacher()
-{
-}
-
-void admin()
-{
 }
