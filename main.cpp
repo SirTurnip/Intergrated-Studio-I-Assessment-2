@@ -47,6 +47,8 @@ int ReadFile(int fileType) {
     return x;
 }
 
+void Log(int logType, vector<vector<string>> logContent);
+
 class Parent {
 public:
     enum Sections { firstName = 0, lastName = 1 };
@@ -54,34 +56,54 @@ public:
 
     string parentName[2];
     void ParentPrint(int index) {
-        parentName[firstName] = content[index][firstName];
-        parentName[lastName] = content[index][lastName];
+        parentName[firstName] = content[index - 2][firstName];
+        parentName[lastName] = content[index - 2][lastName];
 
-        //log(name[firstName], name[lastName]);
-        //log(schedule);
+        vector<vector<string>> logContent = {{content[index][firstName], content[index][lastName]}};
+        Log(6, logContent);
     }
 
-    void ParentRead() {
+    bool ParentRead(bool admin, string subject) {
         //initialize input variables
         ReadFile(3);
         string myInput[2];
 
         // get parent name
-        cout << "firstName lastName: ";
+        cout << "Enter Student Name: ";
         cin >> myInput[firstName] >> myInput[lastName];
 
-
         //clear line
-        cout << "\033[A\r\33[2K";
+        cout << "\033[A\r\33[2K\033[A\r\33[2K";
 
         //call print function
         int sec = 0;
+
+        bool isStudent = false;
         for(int i = 0; i < content.size(); i++) {
-            if(i - sec == 0) { // name
+            if(i - sec == 2) { // name
                 if(content[i][firstName] == myInput[firstName] && content[i][lastName] == myInput[lastName]) {
-                    ParentPrint(i);
+                    if(admin) {
+                        isStudent = true;
+                        ParentPrint(i);
+                        return true;
+                    } else {
+                        if(content[i + 1][0] == subject || content[i + 2][0] == subject) {
+                            isStudent = true;
+                            ParentPrint(i);
+                            return true;
+                        }
+                    }         
                 }
             }
+
+            if(content[i].size() == 0) {
+                sec = i + 1;
+            }
+        }
+
+        if(isStudent == false) {
+            cout << endl << "Student Does Not Attend Your Class!" << endl;
+            return false;
         }
     }
 };
@@ -98,6 +120,8 @@ public:
     int studentId = 0;
 
     string age[3];
+
+    vector<vector<string>> schedule;
 
     void StudentPrint(int index) {
         stringstream ss;
@@ -130,9 +154,7 @@ public:
             extra = 3;
         } else if(inp == "Tuesday") {
             dayIndex = 5;
-        }
-
-        vector<vector<string>> schedule;
+        }        
 
         for(int i = index + dayIndex; i < index + sectionSize - extra; i++) {
             schedule.push_back(content[i]);
@@ -145,8 +167,7 @@ public:
             cout << endl;
         }
 
-        //log(name[firstName], name[lastName], studentId);
-        //log(schedule);
+        Log(1, schedule);
     }
 
     void StudentRead() {
@@ -259,8 +280,7 @@ public:
             cout << endl;
         }
 
-        //log(name[firstName], name[lastName], classSubject, roomNum);
-        //log(schedule);
+        Log(3, schedule);
     }
 
     void TeacherRead() {
@@ -322,10 +342,21 @@ public:
     void Teacher(string subject) {
         ReadFile(3);
 
+        vector<vector<string>> logContent;
+        vector<string> logRow;
+
         int sec = 0;
         for(int i = 0; i < content.size(); i++) {
             if(i - sec == 3 || i - sec == 4) {
                 if(content[i][reportSubject] == subject) {
+                    logRow.clear();
+                    logRow.push_back(content[i - (i - sec)][email]);
+                    logContent.push_back(logRow);
+
+                    logRow.clear();
+                    logRow.push_back(content[i - (i - sec) + 1][email]);
+                    logContent.push_back(logRow);
+                    
                     cout << content[i - (i - sec)][email] << endl;
                     cout << content[i - (i - sec) + 1][email] << endl;
                 }
@@ -335,12 +366,23 @@ public:
                 sec = i + 1;
             }
         }
+
+        Log(4, logContent);
     }
 
     void Admin() {
+        ReadFile(3);
+
+        vector<vector<string>> logContent;
+        vector<string> logRow;
+
         int sec = 0;
         for(int i = 0; i < content.size(); i++) {
             if(i - sec == 0 || i - sec == 1) {
+                logRow.clear();
+                logRow.push_back(content[i][email]);
+                logContent.push_back(logRow);
+
                 cout << content[i][email] << endl;
             }
 
@@ -348,20 +390,34 @@ public:
                 sec = i + 1;
             }
         }
+
+        Log(4, logContent);
     }
 
     void Report(int index, int sec) {
-        for(int i = index; i < content.size(); i++) {
+        vector<vector<string>> reportContent;
+
+        bool r = false;
+        for(int i = index; i < content.size(); i++) {;
             if(i - sec == 3 || i - sec == 4) {
+                reportContent.push_back(content[i]);
+
                 for(int j = 0; j < content[i].size(); j++) {
                     cout << content[i][j] << " ";
                 }
-                cout << endl;
-            }
 
-            if(content[i].size() == 0) {
-                return;
+                cout << endl;
+
+                if(i - sec == 4) {
+                    r = true;
+                    break;
+                }
             }
+        }
+
+        Log(2, reportContent);
+        if(r) {
+            return;
         }
     }
 
@@ -373,6 +429,7 @@ public:
             if(i - sec == 0 || i - sec == 1) {
                 if(name[firstName] == content[i][firstName] && name[lastName] == content[i][lastName]) {
                     Report(i, sec);
+                    break;
                 }
             }
 
@@ -394,45 +451,76 @@ public:
         enum UserData { firstName = 0, lastName = 1, email = 2, password = 3, permissionType = 4 };
         enum PermissoionTypes { teachers = 2, parents = 3, admin = 4 };
 
-        cout << name[firstName] << " " << name[lastName] << endl;
-        cout << userEmail << endl;
-
         switch(userPermissionType) {
             case teachers:
-                cout << "Teacher" << endl;
+                cout << "Teacher: ";
                 break;
             case parents:
-                cout << "Parent" << endl;
+                cout << "Parent: ";
                 break;
             case admin:
-                cout << "Admin" << endl;
+                cout << "Admin: ";
                 break;
             default:
                 break;
         }
+
+        cout << name[firstName] << " " << name[lastName] << endl;
+        cout << "Email: " << userEmail << endl << endl;
     }
 
     void SchoolSystem() {
         PrintUser();
 
+        Log(0, content);
+
         enum UserData { firstName = 0, lastName = 1, email = 2, password = 3, permissionType = 4 };
         enum PermissoionTypes { teachers = 2, parents = 3, admin = 4 };
 
         int input = 0;
-        if(userPermissionType == teachers) {
+        if(userPermissionType == teachers) { //Teacher Loged In
             cout << "1. Teachers" << endl;
-            cout << "2. Parents" << endl;
+            cout << "2. Report" << endl;
             cout << "3. Notifications" << endl;
 
             cin >> input;
+
+            //clear line
+            cout << "\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K";
             if(input == 1) {
                 //teachers
+                cout << "    Teachers" << endl;
+                cout << "----------------" << endl;
                 teacher.TeacherRead();
             } else if(input == 2) {
-                //parents
-                parent.ParentRead();
+                //Report
+                string subject;
+
+                ReadFile(2);
+                int sec = 0;
+                for(int i = 0; i < content.size(); i++) {
+                    if(i - sec == 0) { //name
+                        if(content[i][firstName] == name[firstName] && content[i][lastName] == name[lastName]) {
+                            subject = content[i + 2][0];
+                        }
+                    }
+
+                    if(content[i].size() == 0) {
+                        sec = i + 1;
+                    }
+                }
+
+                bool isStudent = parent.ParentRead(false, subject);
+
+                if(isStudent) {
+                    cout << "    Report" << endl;
+                    cout << "--------------" << endl;
+                    notification.Parent(parent.parentName);
+                }
             } else if(input == 3) {
                 //notifications
+                cout << "    Notifications" << endl;
+                cout << "---------------------" << endl;
 
                 ReadFile(teachers);
 
@@ -450,25 +538,85 @@ public:
                     }
                 }
             }
-        } else if(userPermissionType == parents) {
+        } else if(userPermissionType == parents) { //Parent Loged In
             cout << "1. Report" << endl;
             cout << "2. Students" << endl;
 
             cin >> input;
+
+            //clear line
+            cout << "\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K";
             if(input == 1) {
                 //parents
+                cout << "    Report" << endl;
+                cout << "--------------" << endl;
                 notification.Parent(name);
             } else if(input == 2) {
                 //students
+                cout << "    Students" << endl;
+                cout << "----------------" << endl;
                 student.StudentRead();
             }
         } else if(userPermissionType == admin) {
             cout << "1. Students" << endl;
             cout << "2. Teachers" << endl;
-            cout << "3. Parents" << endl;
+            cout << "3. Report" << endl;
             cout << "4. Notifications" << endl;
 
             cin >> input;
+
+            //clear lines
+            cout << "\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K";
+            if(input == 1) {
+                //Students
+                cout << "    Students" << endl;
+                cout << "----------------" << endl;
+                student.StudentRead();
+            } else if(input == 2) {
+                //Teachers
+                cout << "    Teachers" << endl;
+                cout << "----------------" << endl;
+                teacher.TeacherRead();
+            } else if(input == 3) {
+                //Report
+                cout << "1. Student Name" << endl;
+                cout << "2. Parent Name" << endl;
+                int inp = 0;
+                cin >> inp;
+
+                //clear lines
+                cout << "\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K";
+                
+                if(inp == 1) {
+                    //Enter Student Name
+                    parent.ParentRead(true, "");
+                    cout << "    Report" << endl;
+                    cout << "--------------" << endl;
+                    notification.Parent(parent.parentName);
+                } else {
+                    //Enter Parent Name
+                    cout << "Enter Parent Name: ";
+                    string inputName[2];
+                    cin >> inputName[firstName] >> inputName[lastName];
+
+                    //clear lines
+                    cout << "\033[A\r\33[2K\033[A\r\33[2K";
+
+                    cout << "    Report" << endl;
+                    cout << "--------------" << endl;
+
+                    vector<vector<string>> logContent = {{inputName[firstName], inputName[lastName]}};
+
+                    Log(5, logContent);
+                    notification.Parent(inputName);
+                }
+            } else if(input == 4) {
+                //Notifications
+                cout << "    Notifications" << endl;
+                cout << "---------------------" << endl;
+
+                notification.Admin();
+            }
         }
     }
 
@@ -482,10 +630,13 @@ public:
         cin >> input;
 
         fstream f("users.csv", ios::app);
-        f << name[0] << "," << name[1] << "," << email << "," << input << "," << permissionType << endl;
+        f << endl << name[0] << "," << name[1] << "," << email << "," << input << "," << permissionType;
     }
 
     int Regester() {
+        cout << "    Regester" << endl;
+        cout << "----------------" << endl;
+
         enum FileType { teachers = 2, parents = 3 };
 
         bool findUser = true;
@@ -537,6 +688,9 @@ public:
     }
 
     int Login() {
+        cout << "    Login" << endl;
+        cout << "-------------" << endl;
+
         int x = ReadFile(4);
 
         int sec = 0;
@@ -556,7 +710,8 @@ public:
 
             for(int i = 0; i < content.size(); i++) {
                 if(content[i][email] == input[0] && content[i][password] == input[1]) {
-                    cout << "Loged In!" << endl;
+                    system("cls");
+
                     success = true;
                     runIndex = 0;
 
@@ -574,7 +729,7 @@ public:
             }
 
             if(success == false) {
-                cout << "Incorrect! (" << runIndex - 1 << " Tries Left)" << endl;
+                cout << endl << "Incorrect! (" << runIndex - 1 << " Tries Left)" << endl;
                 runIndex--;
             }
         }
@@ -584,6 +739,83 @@ public:
 };
 User user;
 
+void Log(int logType, vector<vector<string>> logContent) {
+    enum UserData { firstName = 0, lastName = 1, email = 2, password = 3, permissionType = 4 };
+    enum Permissions { teachers = 2, parents = 3, admin = 4 };
+
+    enum LogTypes { login = 0, students = 1, report = 2, roll = 3, notifications = 4, parentName = 5, studentReport = 6 };
+
+    string p[3]{"Teacher", "Parent", "Admin"};
+
+    fstream f("logs.csv", ios::app);
+
+    if(logType == login) {
+        f << p[user.userPermissionType - 2] << " Login: " << user.name[firstName] << " " << user.name[lastName] << endl;
+    } else if(logType == students) {
+        f << "    Schedule" << endl;
+        f << "----------------" << endl;
+        f << "Student: " << student.name[firstName] << " " << student.name[lastName] << ", " << student.studentId << endl;
+
+        for(int i = 0; i < logContent.size(); i++) {
+            for(int j = 0; j < logContent[i].size(); j++) {
+                f << logContent[i][j] << " ";
+            }
+            f << endl;
+        }
+
+        f << endl;
+    } else if(logType == report) {
+        f << "    Report" << endl;
+        f << "--------------" << endl;
+
+        for(int i = 0; i < logContent.size(); i++) {
+            for(int j = 0; j < logContent[i].size(); j++) {
+                f << logContent[i][j] << " ";
+            }
+            f << endl;
+        }
+
+        f << endl;
+    } else if(logType == roll) {
+        f << "    Roll" << endl;
+        f << "------------" << endl;
+        f << "Teacher: " << teacher.name[firstName] << " " << teacher.name[lastName] << ", " << teacher.classSubject << endl;
+
+        for(int i = 0; i < logContent.size(); i++) {
+            for(int j = 0; j < logContent[i].size(); j++) {
+                f << logContent[i][j] << " ";
+            }
+            f << endl;
+        }
+
+        f << endl;
+    } else if(logType == notifications) {
+        f << "    Notifications" << endl;
+        f << "---------------------" << endl;
+
+        for(int i = 0; i < logContent.size(); i++) {
+            for(int j = 0; j < logContent[i].size(); j++) {
+                f << logContent[i][j] << " ";
+            }
+            f << endl;
+        }
+
+        f << endl;
+    } else if(logType == parentName) {
+        f << "Parent: " << logContent[0][firstName] << " " << logContent[0][lastName] << endl;
+    } else if(logType == studentReport) {
+        f << "Student: ";
+        for(int i = 0; i < logContent.size(); i++) {
+            for(int j = 0; j < logContent[i].size(); j++) {
+                f << logContent[i][j] << " ";
+            }
+            f << endl;
+        }
+    }
+    
+    f.close();
+}
+
 int main() {
     int inp;
     cout << "1. Login" << endl;
@@ -591,8 +823,10 @@ int main() {
     cin >> inp;
 
     if(inp == 1) {
+        system("cls");
         user.Login();
     } else {
+        system("cls");
         user.Regester();
     }
 }
