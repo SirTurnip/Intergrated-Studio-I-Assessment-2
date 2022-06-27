@@ -1,5 +1,4 @@
-// login.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+
 
 #include <iostream>
 #include <string>
@@ -9,37 +8,57 @@
 
 using namespace std;
 
-class Register {
-public:
-	string firstName, lastName;
-};
+string permissionType;
 
-class Login {
+class TLogin {
 public:
-	string inFirstName, inLastName;
+	string permissionType;
 };
 
 
-void loginMenu();
-void adminLogin();
-void teacherLogin();
-void parentLogin();
-void registerLogin();
-void login();
-void notification();
-void manageStudent();
-void manageReport();
+struct User {
+	string firstName;
+	string lastName;
+	string permissionType;
+	string email;
+	string password;
+
+	//constructor
+	User(string fN = "Adam", string lN = "Smith", string pT = "parent", string em = "abcd@gmail.com", string pW = "Abcd1234!") {
+		firstName = fN;
+		lastName = lN;
+		permissionType = pT;
+		email = em;
+		password = pW;
+	}
+};
+
+
+string adminPassword = "SchoolAdmin123!";
+
+void LoginMenu();
+void AdminLogin();
+void TeacherLogin();
+void ParentLogin();
+void RegisterLogin();
+void Login();
+void AdminMenu();
+void TeacherMenu();
+void Notification();
+void ManageStudent();
+void ManageReport();
 
 int main()
 {
-	loginMenu();
+
+	LoginMenu();
 
 
 
 
 }
 
-void loginMenu() {
+void LoginMenu() {
 	int select;
 
 	cout << "---------Login/Register---------" << endl;
@@ -54,16 +73,16 @@ void loginMenu() {
 
 	switch (select) {
 	case 1:
-		adminLogin();
+		AdminLogin();
 		break;
 	case 2:
-		teacherLogin();
+		TeacherLogin();
 		break;
 	case 3:
-		parentLogin();
+		ParentLogin();
 		break;
 	case 4:
-		registerLogin();
+		RegisterLogin();
 		break;
 	case 5:
 		exit;
@@ -73,15 +92,45 @@ void loginMenu() {
 
 }
 
-void adminLogin() {
+void AdminLogin() {
 	system("cls");
 	cout << "----------Admin Login----------" << endl << endl;
 
-	login();
+	bool success = false;
+	int guessCount = 2;
+	string firstName, lastName, password;
+	while (!success && guessCount >= 0) {
+		cout << "Enter first and last name :";
+		cin >> firstName >> lastName;
+		cout << "Enter password : ";
+		cin >> password;
 
-	int select;
 
-	cout << "Select from the following" << endl;
+		if (password == adminPassword) {
+			success = true;
+		}
+
+
+		if (!success) {
+
+			cout << "Invalid password. Please try again." << endl;
+			cout << "You have " << guessCount << " tries left." << endl << endl;
+			guessCount--;
+
+		}
+
+		else {
+			cout << "Login success. You are now logged in as admin." << endl;
+
+		}
+
+	}
+	AdminMenu();
+	//display menu options
+
+	/*int select;
+
+	cout << endl<<endl<<"*****Select from the following*****" << endl;
 	cout << "1. Notification" << endl;
 	cout << "2. Manage student details" << endl;
 	cout << "3. Manage report/marks" << endl;
@@ -91,117 +140,292 @@ void adminLogin() {
 
 	switch (select) {
 	case 1:
-		notification();
+		Notification();
 		break;
 	case 2:
-		manageStudent();
+		ManageStudent();
 		break;
 	case 3:
-		manageReport();
+		ManageReport();
 		break;
 	case 4:
 		main();
 		break;
 
-	}
+	}*/
 
 }
-void teacherLogin() {
+void TeacherLogin() {
 	system("cls");
 	cout << "----------Teacher Login----------" << endl << endl;
 
-	login();
+	//check if in correct permission type
+	bool success = false;
+	int fail = 2;//3 tries to login
+	string email, password, line, em, pw;
+	int backMain;
+	while (!success && fail >= 0) {
+		cout << "Enter email :";
+		cin >> email;
+		cout << "Enter password : ";
+		cin >> password;
+
+		//open file to match email and password
+		fstream user("logs.csv");
+
+		while (user >> em) {
+
+			if (em.find("," + email + ",") != string::npos && em.find("," + password) != string::npos) { //user input is matched with email and passwrod data in logs.csv file
+				success = true;
+				break;
+			}
+		}
+		user.close(); //close file
+
+		if (!success) { //email and passworld did not match 
+			cout << endl << "Invalid login.. Please try again" << endl;
+			cout << "You have " << fail << " tries left." << endl << endl;
+			fail--;
+		}
+	}
 
 
+	//If email and password match, match whether they are teacher user
 
+	if (success) {
+		success = false;
+		string role = "teacher";
+		string pm;
+
+		fstream check("logs.csv");
+		while (check >> pm) {
+
+			if (pm.find("," + role + ",") != string::npos && pm.find("," + email + ",") != string::npos) {
+				success = true;
+				break;
+			}
+		}
+		check.close();//close file
+
+		if (success) {
+			cout << endl << "You are now logged in as TEACHER." << endl;
+		}
+
+		else { //user email and password correct but different role so returns user to main page
+			cout << "Invalid user. This is for teaher login. Press 0 to return to main page." << endl << endl;
+			cin >> backMain;
+			if (backMain == 0) {
+				system("cls");
+				LoginMenu();
+			}
+		}
+	}
 
 }
 
 
-void parentLogin() {
+void ParentLogin() {
 	system("cls");
 	cout << "----------Parent Login----------" << endl << endl;
 
-	login();
+	//check if in correct permission type
+	bool success = false;
+	int fail = 2;//3 tries to login
+	string email, password, line, em, pw;
+	int backMain;
+	while (!success && fail >= 0) {
+		cout << "Enter email :";
+		cin >> email;
+		cout << "Enter password : ";
+		cin >> password;
+
+		//open file to match email and password
+		fstream user("logs.csv");
+
+		while (user >> em) {
+
+			if (em.find("," + email + ",") != string::npos && em.find("," + password) != string::npos) { //user input is matched with email and passwrod data in logs.csv file
+				success = true; 
+				break;
+			}
+		}
+		user.close(); //close file
+
+		if (!success) { //email and passworld did not match 
+			cout << endl << "Invalid login.. Please try again" << endl;
+			cout << "You have " << fail << " tries left." << endl << endl;
+			fail--;
+		}
+	}
 
 
+	//If email and password match, match whether they are parent user
+	if(success) {
+		success = false;
+		string role = "parent";
+		string pm;
 
+		fstream check("logs.csv");
+		while (check >> pm) {
+
+			if (pm.find("," + role + ",") != string::npos && pm.find("," + email + ",") != string::npos) {
+				success = true;
+				break;
+			}
+		}
+		check.close();//close file
+
+		if (success) {
+			cout << endl << "You are now logged in as PARENT." << endl;
+		}
+
+		else { //user email and password correct but different role so returns user to main page
+			cout << "Invalid user. This is for parent login. Press 0 to return to main page." << endl<<endl;
+			cin >> backMain;
+			if (backMain == 0) {
+				system("cls");
+				LoginMenu();
+			}
+		}
+	}
 }
 
-void login() {
+
+void RegisterLogin() {
+	system("cls");
+
+	cout << "----------Register Login----------" << endl << endl;
+
+
+	//check if first name and last name match existing record 
+	
 	bool success = false;
-	int fail = 2;
-	string logFirst, logLast, firstName, lastName;
-	string line = " ";
-	while (!success && fail >= 0) {
-		cout << "Enter first name :";
-		cin >> logFirst;
-		cout << endl << "Enter last name : ";
-		cin >> logLast;
+	string firstName, lastName, permissionType, fn, ln, pm;
+	string teacher, parent;
 
+	while (!success) {
+		cout << "Enter your first name : ";
+		cin >> firstName;
+		cout << "Enter your last name : ";
+		cin >> lastName;
 
-		//open file to match first name and last name 
-		fstream f("logs.csv");
-		while (getline(f,line)) {
-			stringstream iss(line);
-			iss >> firstName >> lastName;
-			//login successful
-			if (logFirst == firstName && logLast == lastName) {
+		fstream check("parents.csv");	//check if register details match with current parent in parents.csv
+
+		while (check >> fn) {
+
+			if (fn.find(firstName + ",") != string::npos && fn.find("," + lastName) != string::npos) {
 				success = true;
 			}
+		}
+
+		if (success) {
+			cout << endl << "Your details match our system record. You can now register as PARENT user." << endl;
+			permissionType = "parent";
+			break;
+		}
+
+		else {
+			fstream check("teachers.csv"); //check if register details match with current teacher in teachers.csv
+			while (check >> fn) {
+
+				if (fn.find(firstName + ",") != string::npos && fn.find("," + lastName) != string::npos) {
+					success = true;
+				}
+
+
+			}
+		}
+		if (success) {
+			cout << endl << "Your details match our system record. You can now register as TEACHER user." << endl;
+			permissionType = "teacher";
+
+
 
 		}
-		if (!success) { //did not find match in file
-			cout << endl<< "Invalid first name and last name. Please try again" << endl;
-			cout << "You have " << fail << " tries left." << endl<<endl;
-			fail--;
+
+		else {
+			cout << endl << "Invalid user. Please check first name and last name." << endl;
+
+		}	check.close();
+
+	}
+
+
+
+	//username
+	cout << endl << "----Set login details----" << endl << endl;
+	string email;
+	int flag = 0;
+	do {
+		cout << "Enter valid email address : ";
+		cin >> email;
+
+		int i;
+		for (i = 0; i < email.size(); i++) {
+
+
+			if (email[i] == '@')
+				flag = 1;
+
 
 		}
-	}
 
-	if (success) {
-		cout << "Login successful" << endl;
-		cout << "You are now logged in as ";
-	}
-	else {
-		cout << "Maximum login attempt. Try again later"<<endl;
-		system("cls");
-		main();
+	} while (!(flag == 1));
+	cout << "This is a valid email" << endl << endl;
 
-	}
-}
 
-void registerLogin() {
-	system("cls");
 
-	string firstName, lastName, permissionType;
-	cout << "----------Register Login----------" << endl << endl;
-	cout << "Enter your first name : ";
-	cin >> firstName;
-	cout << endl << "Enter your last name : ";
-	cin >> lastName;
-	cout << endl << "Choose from the following role: Admin, Teacher or Parent : ";
-	cin >> permissionType;
+	//password 
+	int l_case = 0, u_case = 0, digit = 0, special = 0;
+	string password;
+	size_t l;
 
-	fstream f("logs.csv", ios::app);
-	f << firstName << "," << lastName << "," << permissionType << "," << endl;
-	
-	int k;
+	do {
+		cout << endl << "*Password MUST contain atleast 8 characters, 1 Uppercase, 1 Lowercase, 1 number AND 1 special character" << endl;
+		cout << "Enter Password" << endl;
+		cin >> password;
+		l = password.length();
+		size_t i;
+		for (i = 0; i < l; i++) {
+			if (islower(password[i]))
+				l_case = 1;
+			if (isupper(password[i]))
+				u_case = 1;
+			if (isdigit(password[i]))
+				digit = 1;
+			if (!isalpha(password[i]) && !isdigit(password[i]))
+				special = 1;
+		}
+	} while (!(l_case && u_case && digit && special && l >= 8));
 	cout << "Registration successful" << endl;
-	
-	system("cls");
-	main();
+
+
+	fstream user("logs.csv", ios::app);
+	user << firstName << "," << lastName << "," << permissionType << "," << email << "," << password << endl;
+	user.close();
 
 }
 
-void notification() {
+void AdminMenu() {
+	cout << endl << "Select from following";
+
 
 }
 
-void manageStudent() {
+void TeacherMenu() {
+
+
 
 }
 
-void manageReport() {
+void Notification() {
+
+}
+
+void ManageStudent() {
+
+}
+
+void ManageReport() {
 
 }
