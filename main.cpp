@@ -822,16 +822,19 @@ void Log(int logType, vector<vector<string>> logContent) {
 }
 
 int main() {
-    int inp;
     cout << "1. Login" << endl;
     cout << "2. Regester" << endl;
-    cin >> inp;
+    cout << "3. Exit" << endl;
 
-    if(inp == 1) {
-        system("cls");
+    int input;
+    cin >> input;
+
+    system("cls");
+    if(input == 1) {
         user.Login();
-    } else {
-        system("cls");
+    } else if(input == 2) {
         user.Regester();
     }
+
+    return 0;
 }
