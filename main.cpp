@@ -10,19 +10,25 @@ vector<string> row;
 
 int ReadFile(int fileType) {
     fstream f;
+    f.close();
 
-    enum FileType { students = 1, teachers = 2, notifications = 3 };
+    content.clear();
+
+    enum FileType { students = 1, teachers = 2, parents = 3, notifications = 3, users = 4 };
 
     int x = 0;
     if(fileType == students) {
-        f.open("C:/Users/Auren/Documents/Assessment 2/Assessment 2/students.csv");
+        f.open("students.csv");
         x = students;
     } else if(fileType == teachers) {
-        f.open("C:/Users/Auren/Documents/Assessment 2/Assessment 2/teachers.csv");
+        f.open("teachers.csv");
         x = teachers;
-    } else if(fileType == notifications) {
-        f.open("C:/Users/Auren/Documents/Assessment 2/Assessment 2/parents.csv");
-        x = notifications;
+    } else if(fileType == parents) {
+        f.open("parents.csv");
+        x = parents;
+    } else if(fileType == users) {
+        f.open("users.csv");
+        x = users;
     }
 
     string word;
@@ -40,6 +46,46 @@ int ReadFile(int fileType) {
 
     return x;
 }
+
+class Parent {
+public:
+    enum Sections { firstName = 0, lastName = 1 };
+    int sectionSize = 3;
+
+    string parentName[2];
+    void ParentPrint(int index) {
+        parentName[firstName] = content[index][firstName];
+        parentName[lastName] = content[index][lastName];
+
+        //log(name[firstName], name[lastName]);
+        //log(schedule);
+    }
+
+    void ParentRead() {
+        //initialize input variables
+        ReadFile(3);
+        string myInput[2];
+
+        // get parent name
+        cout << "firstName lastName: ";
+        cin >> myInput[firstName] >> myInput[lastName];
+
+
+        //clear line
+        cout << "\033[A\r\33[2K";
+
+        //call print function
+        int sec = 0;
+        for(int i = 0; i < content.size(); i++) {
+            if(i - sec == 0) { // name
+                if(content[i][firstName] == myInput[firstName] && content[i][lastName] == myInput[lastName]) {
+                    ParentPrint(i);
+                }
+            }
+        }
+    }
+};
+Parent parent;
 
 class Student {
 public:
@@ -104,6 +150,8 @@ public:
     }
 
     void StudentRead() {
+        ReadFile(1);
+
         //initialize input variables
         string myInput[2];
 
@@ -216,6 +264,8 @@ public:
     }
 
     void TeacherRead() {
+        ReadFile(2);
+
         string inp;
         cout << "Enter 'name' 'subject' or 'room': ";
         cin >> inp;
@@ -270,6 +320,8 @@ public:
     int size = 5;
 
     void Teacher(string subject) {
+        ReadFile(3);
+
         int sec = 0;
         for(int i = 0; i < content.size(); i++) {
             if(i - sec == 3 || i - sec == 4) {
@@ -314,6 +366,8 @@ public:
     }
 
     void Parent(string name[2]) {
+        ReadFile(3);
+
         int sec = 0;
         for(int i = 0; i < content.size(); i++) {
             if(i - sec == 0 || i - sec == 1) {
@@ -332,60 +386,213 @@ Notification notification;
 
 class User {
 public:
-    enum UserSections { firstName = 0, lastName = 1, phone = 2 };
-
-    enum ParentNames { Errol = 0, Maye = 1, Marco = 6, Rebekah = 7, John = 12, Jane = 13, Dany = 18, Emelia = 19 };
-    enum Permissions { teacher = 1, admin = 2, parent = 3 };
-
-    int permissionType = teacher;
-
     string name[2];
-    string number;
+    string userEmail;
+    int userPermissionType = 0;
 
-    string subject = "English";
+    void PrintUser() {
+        enum UserData { firstName = 0, lastName = 1, email = 2, password = 3, permissionType = 4 };
+        enum PermissoionTypes { teachers = 2, parents = 3, admin = 4 };
 
-    void Login() {
-        //first & last name
-        name[firstName] = content[John][firstName];
-        name[lastName] = content[John][lastName];
+        cout << name[firstName] << " " << name[lastName] << endl;
+        cout << userEmail << endl;
 
-        //phone number
-        number = content[John][phone];
-
-        if(permissionType == teacher) {
-            notification.Teacher(subject);
-        } else if(permissionType == admin) {
-            notification.Admin();
-        } else if(permissionType == parent) {
-            notification.Parent(name);
+        switch(userPermissionType) {
+            case teachers:
+                cout << "Teacher" << endl;
+                break;
+            case parents:
+                cout << "Parent" << endl;
+                break;
+            case admin:
+                cout << "Admin" << endl;
+                break;
+            default:
+                break;
         }
+    }
+
+    void SchoolSystem() {
+        PrintUser();
+
+        enum UserData { firstName = 0, lastName = 1, email = 2, password = 3, permissionType = 4 };
+        enum PermissoionTypes { teachers = 2, parents = 3, admin = 4 };
+
+        int input = 0;
+        if(userPermissionType == teachers) {
+            cout << "1. Teachers" << endl;
+            cout << "2. Parents" << endl;
+            cout << "3. Notifications" << endl;
+
+            cin >> input;
+            if(input == 1) {
+                //teachers
+                teacher.TeacherRead();
+            } else if(input == 2) {
+                //parents
+                parent.ParentRead();
+            } else if(input == 3) {
+                //notifications
+
+                ReadFile(teachers);
+
+                int sec = 0;
+                for(int i = 0; i < content.size(); i++) {
+                    if(i - sec == 0) {
+                        if(content[i][firstName] == name[firstName] && content[i][lastName] == name[lastName]) {
+                            notification.Teacher(content[i + 2][0]);
+                            return;
+                        }
+                    }
+
+                    if(content[i].size() == 0) {
+                        sec = i + 1;
+                    }
+                }
+            }
+        } else if(userPermissionType == parents) {
+            cout << "1. Report" << endl;
+            cout << "2. Students" << endl;
+
+            cin >> input;
+            if(input == 1) {
+                //parents
+                notification.Parent(name);
+            } else if(input == 2) {
+                //students
+                student.StudentRead();
+            }
+        } else if(userPermissionType == admin) {
+            cout << "1. Students" << endl;
+            cout << "2. Teachers" << endl;
+            cout << "3. Parents" << endl;
+            cout << "4. Notifications" << endl;
+
+            cin >> input;
+        }
+    }
+
+    void AddUser(int permissionType, string name[2]) {
+        cout << "Enter Email: ";
+        string email;
+        cin >> email;
+
+        string input;
+        cout << "Enter Password: ";
+        cin >> input;
+
+        fstream f("users.csv", ios::app);
+        f << name[0] << "," << name[1] << "," << email << "," << input << "," << permissionType << endl;
+    }
+
+    int Regester() {
+        enum FileType { teachers = 2, parents = 3 };
+
+        bool findUser = true;
+        int runIndex = teachers;
+
+        string input[2];
+
+        string userEmail;
+
+        enum MyEnum { firstName = 0, lastName = 1, email = 3 };
+
+        cout << "Enter Name: ";
+        cin >> input[firstName] >> input[lastName];
+
+        for(int i = teachers; i <= parents; i++) {
+            int x = ReadFile(i);
+
+            int sec = 0;
+            bool success = false;
+
+            for(int j = 0; j < content.size(); j++) {
+                if(sec - j == 0 || sec - j == -1) {
+                    if(content[j][firstName] == input[firstName] && content[j][lastName] == input[lastName]) {
+                        cout << "User Verified!" << endl;
+                        success = true;
+                    }
+                }
+
+                if(content[j].size() == 0) {
+                    sec = j + 1;
+                }
+            }
+
+            if(success) {
+                AddUser(runIndex, input);
+                findUser = false;
+            } else {
+                if(runIndex == teachers) {
+                    //first run
+                    runIndex = parents;
+                } else {
+                    //second run
+                    cout << "User Not Found!" << endl;
+                    return 0;
+                }
+            }
+        }
+        return 0;
+    }
+
+    int Login() {
+        int x = ReadFile(4);
+
+        int sec = 0;
+        bool success = false;
+
+        enum UserData { firstName = 0, lastName = 1, email = 2, password = 3, permissionType = 4 };
+
+        string input[2];
+
+        int runIndex = 3;
+        while(runIndex > 0) {
+            cout << "Enter Email: ";
+            cin >> input[0];
+
+            cout << "Enter Password: ";
+            cin >> input[1];
+
+            for(int i = 0; i < content.size(); i++) {
+                if(content[i][email] == input[0] && content[i][password] == input[1]) {
+                    cout << "Loged In!" << endl;
+                    success = true;
+                    runIndex = 0;
+
+                    name[firstName] = content[i][firstName];
+                    name[lastName] = content[i][lastName];
+                    userEmail = content[i][email];
+
+                    stringstream ss;
+                    ss << content[i][permissionType];
+                    ss >> userPermissionType;
+
+                    SchoolSystem();
+                    break;
+                }
+            }
+
+            if(success == false) {
+                cout << "Incorrect! (" << runIndex - 1 << " Tries Left)" << endl;
+                runIndex--;
+            }
+        }
+
+        return 0;
     }
 };
 User user;
 
 int main() {
-    enum FileType { students = 1, teachers = 2, notifications = 3 };
+    int inp;
+    cout << "1. Login" << endl;
+    cout << "2. Regester" << endl;
+    cin >> inp;
 
-    cout << "1. Students" << endl;
-    cout << "2. Teachers" << endl;
-    cout << "3. Notifications" << endl;
-    int input;
-    cin >> input;
-
-    //clear 4 lines
-    cout << "\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K\033[A\r\33[2K";
-
-    int fileType = input;
-
-    int x = ReadFile(fileType);
-  
-    if(x == students) {
-        student.StudentRead();
-    } else if(x == teachers) {
-        teacher.TeacherRead();
-    } else if(x == notifications) {
+    if(inp == 1) {
         user.Login();
-    }   
-
-	return 0;
+    } else {
+        user.Regester();
+    }
 }
