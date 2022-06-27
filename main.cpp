@@ -466,7 +466,12 @@ public:
         }
 
         cout << name[firstName] << " " << name[lastName] << endl;
-        cout << "Email: " << userEmail << endl << endl;
+
+        if(userPermissionType != admin) {
+            cout << "Email: " << userEmail << endl;
+        }
+
+        cout << endl;
     }
 
     void SchoolSystem() {
