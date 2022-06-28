@@ -638,7 +638,7 @@ public:
         f << endl << name[0] << "," << name[1] << "," << email << "," << input << "," << permissionType;
     }
 
-    int Regester() {
+    int Register() {
         cout << "    Regester" << endl;
         cout << "----------------" << endl;
 
@@ -823,7 +823,7 @@ void Log(int logType, vector<vector<string>> logContent) {
 
 int main() {
     cout << "1. Login" << endl;
-    cout << "2. Regester" << endl;
+    cout << "2. Register" << endl;
     cout << "3. Exit" << endl;
 
     int input;
@@ -833,7 +833,7 @@ int main() {
     if(input == 1) {
         user.Login();
     } else if(input == 2) {
-        user.Regester();
+        user.Register();
     }
 
     return 0;
