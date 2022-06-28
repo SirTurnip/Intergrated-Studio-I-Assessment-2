@@ -466,7 +466,12 @@ public:
         }
 
         cout << name[firstName] << " " << name[lastName] << endl;
-        cout << "Email: " << userEmail << endl << endl;
+
+        if(userPermissionType != admin) {
+            cout << "Email: " << userEmail << endl;
+        }
+
+        cout << endl;
     }
 
     void SchoolSystem() {
@@ -633,7 +638,7 @@ public:
         f << endl << name[0] << "," << name[1] << "," << email << "," << input << "," << permissionType;
     }
 
-    int Regester() {
+    int Register() {
         cout << "    Regester" << endl;
         cout << "----------------" << endl;
 
@@ -817,16 +822,19 @@ void Log(int logType, vector<vector<string>> logContent) {
 }
 
 int main() {
-    int inp;
     cout << "1. Login" << endl;
-    cout << "2. Regester" << endl;
-    cin >> inp;
+    cout << "2. Register" << endl;
+    cout << "3. Exit" << endl;
 
-    if(inp == 1) {
-        system("cls");
+    int input;
+    cin >> input;
+
+    system("cls");
+    if(input == 1) {
         user.Login();
-    } else {
-        system("cls");
-        user.Regester();
+    } else if(input == 2) {
+        user.Register();
     }
+
+    return 0;
 }
